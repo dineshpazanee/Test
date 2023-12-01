@@ -1,0 +1,133 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.test</groupId>
+  <artifactId>com.test</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  
+  <profiles>
+  <!-- https://coderanch.com/t/511034/build-tools/mvn-sql-execute-execute-scripts -->
+ <profile>
+  <id>profile1</id> 
+   <activation>
+  <activeByDefault>false</activeByDefault> 
+  </activation>
+ <properties>
+ <!--  JDBC driver properties 
+   --> 
+  <jdbcDriver.groupId>oracle</jdbcDriver.groupId> 
+  <jdbcDriver.artifactId>ojdbc14</jdbcDriver.artifactId> 
+  <jdbcDriver.version>10.2.0.4.0</jdbcDriver.version>
+  <jdbcDriver.className>oracle.jdbc.OracleDriver</jdbcDriver.className> 
+ <!--   Data source properties 
+  --> 
+  <dataSource.user>profile1</dataSource.user> 
+  <dataSource.password>profile1</dataSource.password> 
+  <dataSource.url>jdbc:oracle:thin:@localhost:1521:xe</dataSource.url> 
+  <dataSource.createTablesScript>scripts/PROFILE1_CREATE_TABLES.sql</dataSource.createTablesScript> 
+  </properties>
+  </profile>
+</profiles>
+  
+ <build>
+    <plugins>
+        <plugin>
+			<!-- https://github.com/Systemmanic/docker-compose-maven-plugin -->
+            <groupId>com.dkanejs.maven.plugins</groupId>
+            <artifactId>docker-compose-maven-plugin</artifactId>
+            <version>4.0.0</version>
+            <executions>
+                <execution>
+                    <id>pull</id>
+                    <phase>verify</phase>
+                    <goals>
+                        <goal>pull</goal>
+                    </goals>
+                    <configuration>
+                        <composeFile>${project.basedir}/src/test/resources/docker-compose.yml</composeFile>
+                        <ignorePullFailures>true</ignorePullFailures>
+                    </configuration>
+                </execution>
+                 <execution>
+                    <id>up</id>
+                    <phase>verify</phase>
+                    <goals>
+                        <goal>up</goal>
+                    </goals>
+                    <configuration>
+                        <composeFile>${project.basedir}/src/test/resources/docker-compose.yml</composeFile>
+                        <detachedMode>true</detachedMode>
+                    </configuration>
+                </execution>
+                <!--<execution>
+                    <id>down</id>
+                    <phase>verify</phase>
+                    <goals>
+                        <goal>down</goal>
+                    </goals>
+                    <configuration>
+                        <composeFile>${project.basedir}/src/test/resources/docker-compose.yml</composeFile>
+                        <removeVolumes>true</removeVolumes>
+                    </configuration>
+                </execution>-->
+            </executions>
+        </plugin>
+        
+        <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>sql-maven-plugin</artifactId>
+        <version>1.3</version>
+ 
+        <dependencies>
+          <!-- specify the dependent jdbc driver here -->
+          <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc14</artifactId>
+            <version>10.2.0.4</version>
+          </dependency>
+        </dependencies>
+ 
+        <!-- common configuration shared by all executions -->
+        <configuration>
+          <driver>${jdbcDriver.className}</driver>
+          <url>${dataSource.url}</url>
+          <username>${dataSource.user}</username>
+          <password>${dataSource.password}</password>
+          <!-- You can comment out username/password configurations and
+               have maven to look them up in your settings.xml using ${settingsKey}
+          -->
+          <settingsKey>sensibleKey</settingsKey>
+          <!--all executions are ignored if -Dmaven.test.skip=true-->
+          <skip>${maven.test.skip}</skip>
+          <fileset>
+    <basedir>${basedir}</basedir> 
+            <includes>
+                <include>${dataSource.createTablesScript}</include> 
+            </includes>
+            </fileset>
+ 
+        </configuration>
+        <executions>
+               <execution>
+            <id>create-schema</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <autocommit>true</autocommit>
+              <srcFiles>
+                <srcFile>${dataSource.url}</srcFile>
+              </srcFiles>
+            </configuration>
+          </execution>
+           
+        </executions>
+      </plugin>
+    </plugins>
+</build>
+        
+
+
+
+
+</project>
