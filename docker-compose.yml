@@ -1,0 +1,34 @@
+version: '3'
+services:
+  oracle-db:
+    image: container-registry.oracle.com/database/free:latest
+    container_name: oracle-db-container
+    environment:
+      - ORACLE_SID=ORCLCDB1
+      - ORACLE_PDB=ORCLPDB1
+      - ORACLE_PWD=your_oracle_password
+    ports:
+      - "1521:1521"
+      - "5500:5500"
+
+  kinesis:
+    image: tddmonkey/kinesis-local
+    container_name: kinesis-container
+    environment:
+      - KINESIS_LOCAL_ENDPOINT=http://localhost:4568
+    ports:
+      - "4568:4568"
+
+  dynamodb:
+    image: amazon/dynamodb-local
+    container_name: dynamodb-container
+    ports:
+      - "8000:8000"
+    volumes:
+      - dynamodb-data:/home/dynamodblocal
+
+volumes:
+  oracle-data:
+  oracle-logs:
+  oracle-config:
+  dynamodb-data:
