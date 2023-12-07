@@ -1,0 +1,71 @@
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class ConcurrentHttpPostExample {
+
+    public static void main(String[] args) {
+        // Number of concurrent requests
+        int numberOfRequests = 5;
+
+        // URL to which you want to send POST requests
+        String postUrl = "https://example.com/api/post";
+
+        // Sample JSON payload for the POST request
+        String jsonPayload = "{\"key\": \"value\"}";
+
+        // Create an ExecutorService with a fixed thread pool
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfRequests);
+
+        // List to store CompletableFuture objects
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        // Create and execute concurrent HTTP POST requests
+        for (int i = 0; i < numberOfRequests; i++) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                try {
+                    sendHttpPost(postUrl, jsonPayload);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }, executorService);
+
+            futures.add(future);
+        }
+
+        // Wait for all CompletableFuture objects to complete
+        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
+        // Block until all requests are completed
+        try {
+            allOf.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        // Shutdown the executor service
+        executorService.shutdown();
+    }
+
+    private static void sendHttpPost(String postUrl, String jsonPayload) throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(postUrl))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        System.out.println("Response Code: " + response.statusCode());
+        System.out.println("Response Body: " + response.body());
+    }
+}
