@@ -1,0 +1,13 @@
+
+#Link
+
+https://github.com/fabric8io/docker-maven-plugin/blob/master/samples/custom-net/pom.xml
+
+https://stackoverflow.com/questions/63441418/docker-compose-in-fabric8s-docker-maven-plugin-not-working
+
+important:
+https://fndomoraes.medium.com/running-docker-containers-on-maven-integration-tests-ee071bcd743f
+
+https://stackoverflow.com/questions/39487399/docker-host-environment-variable-on-windows
+
+https://tech.asimio.net/2016/08/04/Integration-Testing-using-Spring-Boot-Postgres-and-Docker.html
